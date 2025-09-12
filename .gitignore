@@ -1,0 +1,89 @@
+# -----------------------------
+# Global ignores
+# -----------------------------
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+
+# VS Code / IDE settings
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------
+# Go specific
+# -----------------------------
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace files
+vendor/
+bin/
+dist/
+coverage.out
+
+# -----------------------------
+# Ruby specific
+# -----------------------------
+*.gem
+*.rbc
+.bundle/
+.config/
+.yardoc
+_yardoc/
+doc/
+Gemfile.lock
+
+# -----------------------------
+# Node/Frontend (if added later)
+# -----------------------------
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# -----------------------------
+# Docker
+# -----------------------------
+*.tar
+*.img
+*.pid
+*.seed
+docker-compose.override.yml
+
+# -----------------------------
+# Shell scripts
+# -----------------------------
+*.retry
+*.save
+
+# -----------------------------
+# Python (if added later for ML)
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# -----------------------------
+# Misc
+# -----------------------------
+secrets/
+.env
+.env.*
+*.crt
+*.key
+
