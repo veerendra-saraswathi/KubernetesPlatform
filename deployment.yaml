@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: jupyter-notebook
+        environment: development
+        workload-type: ai
+    name: jupyter-notebook
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: jupyter-notebook
+            environment: development
+            workload-type: ai
+    template:
+        metadata:
+            labels:
+                app: jupyter-notebook
+                environment: development
+                workload-type: ai
+        spec:
+            containers:
+                - env:
+                    - name: nvidia_visible_devices
+                      value: all
+                    - name: jupyter_token
+                      value: secret123
+                  image: jupyter/tensorflow-notebook:latest
+                  name: jupyter-notebook
+                  ports:
+                    - containerPort: 8888
+                  resources:
+                    limits:
+                        cpu: "2"
+                        memory: 4Gi
+                    requests:
+                        cpu: "2"
+                        memory: 4Gi

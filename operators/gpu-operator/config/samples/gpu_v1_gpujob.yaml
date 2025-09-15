@@ -1,0 +1,9 @@
+apiVersion: gpu.yourstartup.com/v1
+kind: GpuJob
+metadata:
+  labels:
+    app.kubernetes.io/name: gpu-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: gpujob-sample
+spec:
+  # TODO(user): Add fields here

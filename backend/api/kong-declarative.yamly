@@ -1,0 +1,10 @@
+_format_version: "2.1"
+services:
+- name: kaas-api
+  url: http://kaas-api.api.svc.cluster.local:8081
+  routes:
+  - name: kaas-api-route
+    paths:
+    - /api
+    strip_path: false
+

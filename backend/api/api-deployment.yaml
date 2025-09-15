@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaas-api
+  namespace: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaas-api
+  template:
+    metadata:
+      labels:
+        app: kaas-api
+    spec:
+      containers:
+        - name: kaas-api
+          image: veerendrasaraswathi/kaas-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+

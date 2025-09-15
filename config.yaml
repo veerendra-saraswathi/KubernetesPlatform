@@ -1,0 +1,17 @@
+# config.yaml - Example configuration for AI workload
+appName: "jupyter-notebook"
+image: "jupyter/tensorflow-notebook:latest"
+cpu: "2"
+memory: "4Gi"
+gpu: "1"
+gpuType: "nvidia"
+port: 8888
+
+labels:
+  app: jupyter-notebook
+  environment: development
+  workload-type: ai
+
+environment:
+  JUPYTER_TOKEN: "secret123"
+  NVIDIA_VISIBLE_DEVICES: "all"

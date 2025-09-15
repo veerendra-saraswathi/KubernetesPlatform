@@ -1,0 +1,58 @@
+package multicluster
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "path/filepath"
+
+    "k8s.io/client-go/tools/clientcmd"
+    "k8s.io/client-go/dynamic"
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "k8s.io/apimachinery/pkg/runtime/schema"
+)
+
+var gpuJobGVR = schema.GroupVersionResource{
+    Group:    "gpu.yourstartup.com",
+    Version:  "v1",
+    Resource: "gpujobs",
+}
+
+// ListGpuJobsAcrossClusters takes multiple kubeconfigs and prints GpuJobs
+func ListGpuJobsAcrossClusters(kubeconfigs []string) {
+    for _, kubeconfig := range kubeconfigs {
+        config, err := clientcmd.BuildConfigFromFlags("", filepath.Clean(kubeconfig))
+        if err != nil {
+            fmt.Printf("Failed to load kubeconfig %s: %v\n", kubeconfig, err)
+            continue
+        }
+
+        client, err := dynamic.NewForConfig(config)
+        if err != nil {
+            fmt.Printf("Failed to create dynamic client for %s: %v\n", kubeconfig, err)
+            continue
+        }
+
+        jobs, err := client.Resource(gpuJobGVR).Namespace("").List(context.TODO(), metav1.ListOptions{})
+        if err != nil {
+            fmt.Printf("Failed to list GpuJobs in %s: %v\n", kubeconfig, err)
+            continue
+        }
+
+        fmt.Printf("Cluster: %s\n", kubeconfig)
+        for _, job := range jobs.Items {
+            fmt.Printf(" - %s/%s\n", job.GetNamespace(), job.GetName())
+        }
+    }
+}
+
+// Example usage
+func Example() {
+    kubeconfigs := []string{
+        os.ExpandEnv("$HOME/.kube/config-cluster1"),
+        os.ExpandEnv("$HOME/.kube/config-cluster2"),
+    }
+
+    ListGpuJobsAcrossClusters(kubeconfigs)
+}
+

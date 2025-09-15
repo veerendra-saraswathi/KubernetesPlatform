@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vectoradd-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: vectoradd
+        image: nvidia/cuda:12.2.0-runtime-ubuntu22.04
+        command: ["bash", "-c", "echo VectorAdd test job running; sleep 30"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+      restartPolicy: Never
+  backoffLimit: 2
+

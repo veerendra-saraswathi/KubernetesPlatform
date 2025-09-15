@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kaas-api-ingress
+  namespace: api
+  annotations:
+    konghq.com/strip-path: "true"
+    konghq.com/preserve-host: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - host: kaas.local      # You can test with /etc/hosts mapping
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: kaas-api-service
+            port:
+              number: 80
+

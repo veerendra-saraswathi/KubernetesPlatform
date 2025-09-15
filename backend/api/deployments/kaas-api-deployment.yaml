@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaas-api
+  namespace: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaas-api
+  template:
+    metadata:
+      labels:
+        app: kaas-api
+    spec:
+      containers:
+      - name: kaas-api
+        image: kaas-api-service:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kaas-api
+  namespace: api
+spec:
+  selector:
+    app: kaas-api
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+

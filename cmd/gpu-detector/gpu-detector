@@ -1,0 +1,136 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"os/exec"
+	"time"
+)
+
+// runCommand executes a shell command with a timeout and returns its standard output as a string.
+func runCommand(command string, args ...string) (string, error) {
+	cmd := exec.Command(command, args...)
+	
+	// Set timeout
+	done := make(chan error, 1)
+	go func() {
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			done <- fmt.Errorf("%s: %v", string(output), err)
+		} else {
+			done <- nil
+		}
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			return "", err
+		}
+		output, _ := cmd.Output()
+		return string(output), nil
+	case <-time.After(10 * time.Second):
+		cmd.Process.Kill()
+		return "", fmt.Errorf("command timed out after 10 seconds")
+	}
+}
+
+// Node represents a Kubernetes node
+type Node struct {
+	Metadata struct {
+		Name string `json:"name"`
+	} `json:"metadata"`
+	Status struct {
+		Capacity    map[string]string `json:"capacity"`
+		Allocatable map[string]string `json:"allocatable"`
+		Conditions  []struct {
+			Type   string `json:"type"`
+			Status string `json:"status"`
+		} `json:"conditions"`
+	} `json:"status"`
+}
+
+// NodeList represents a list of nodes
+type NodeList struct {
+	Items []Node `json:"items"`
+}
+
+func main() {
+	fmt.Println("🖥️  Kubernetes GPU Detector")
+	fmt.Println("==========================")
+
+	// Check kubectl
+	_, err := runCommand("kubectl", "version", "--client")
+	if err != nil {
+		fmt.Printf("❌ kubectl error: %v\n", err)
+		return
+	}
+
+	// Get nodes in JSON format
+	output, err := runCommand("kubectl", "get", "nodes", "-o", "json")
+	if err != nil {
+		fmt.Printf("❌ Error getting nodes: %v\n", err)
+		return
+	}
+
+	// Parse JSON
+	var nodeList NodeList
+	if err := json.Unmarshal([]byte(output), &nodeList); err != nil {
+		fmt.Printf("❌ JSON parse error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("📡 Found %d node(s)\n", len(nodeList.Items))
+	fmt.Println("==========================")
+
+	gpuNodes := 0
+	totalGPUs := 0
+
+	for _, node := range nodeList.Items {
+		// Check node readiness
+		ready := false
+		for _, condition := range node.Status.Conditions {
+			if condition.Type == "Ready" && condition.Status == "True" {
+				ready = true
+				break
+			}
+		}
+
+		// Check for GPUs
+		hasGPU := false
+		gpuType := ""
+		gpuCount := ""
+		
+		gpuResources := []string{"nvidia.com/gpu", "amd.com/gpu", "intel.com/gpu"}
+		for _, resource := range gpuResources {
+			if count, exists := node.Status.Capacity[resource]; exists && count != "0" {
+				hasGPU = true
+				gpuType = resource
+				gpuCount = count
+				break
+			}
+		}
+
+		status := "❌"
+		if ready {
+			status = "✅"
+		}
+
+		if hasGPU {
+			gpuNodes++
+			var count int
+			fmt.Sscanf(gpuCount, "%d", &count)
+			totalGPUs += count
+			fmt.Printf("%s %s | GPUs: %s x %s\n", status, node.Metadata.Name, gpuCount, gpuType)
+		} else {
+			fmt.Printf("%s %s | GPUs: None\n", status, node.Metadata.Name)
+		}
+	}
+
+	fmt.Println("==========================")
+	fmt.Printf("GPU Nodes: %d | Total GPUs: %d\n", gpuNodes, totalGPUs)
+	
+	if gpuNodes == 0 {
+		fmt.Println("💡 Tip: Install NVIDIA/AMD device plugins to enable GPU detection")
+	}
+}
